@@ -14,6 +14,11 @@ app.engine("handlebars", engine());
 app.set("view engine", "handlebars");
 // app.set('views', path.join(__dirname, 'views'))
 
+// Middleware and static files
+app.use(express.static("static"));
+// or
+// app.use("/static", express.static(path.join(__dirname, 'static')));
+
 // logger mw
 app.use((req, res, next) => {
   console.log("New request made");

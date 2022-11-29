@@ -203,3 +203,16 @@ At this point the site hangs cause after executing the mx (cause we are not send
 We get access to this fn from the mw fn parameter, we just have to invoke it.
 
 We can have multiple mw one after other, the execution will stop only if we send some response.
+
+## static file
+
+If we have static files like styles, img etc, we won't be able to access them automatically. Cause the server protects all of our files from users in the browser so they cant access any of our files.
+So we have to specify what files should be accessed ie public, to achieve this we use the `static` middleware that comes with express
+
+```
+app.use(express.static("static"));
+
+in html views - href="/styles.css" - not static/styles/css
+```
+
+So if we create a file named static, that would be accessiable by the browser try: `localhost:3000/styles.css
