@@ -122,6 +122,17 @@ Now start adding just the body part in `index.handlebars`.
 
 So when we call the render fn on a file firstly ctrl goes to the layouts inside the views folder and takes the main.handlebars file and to it injects the body of the file which we gave to be rendered.
 
+Also we can add components that need to be commonly rendered in all views like the navbar etc. inside partials
+
 ### Bootstrap
 
 We can add the CDN links to css an js in the main.handlebars file and add the bootstrap properties to the body of different views.
+Also we can download bootstrap and add it to a file named `static`. And add the links in the `main.handlebars`
+
+```
+<link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap.min.css">
+
+<script type="text/javascript" src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+```
+
+Similar way we can also add normal css to hbs views. Add all the css files inside the static folder "create another file inside it named images to store the assets etc, and add the link to theses css styles to its corresponding hbs file
