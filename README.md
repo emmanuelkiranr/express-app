@@ -136,3 +136,41 @@ Also we can download bootstrap and add it to a file named `static`. And add the 
 ```
 
 Similar way we can also add normal css to hbs views. Add all the css files inside the static folder "create another file inside it named images to store the assets etc, and add the link to theses css styles to its corresponding hbs file
+
+## Passing data into views
+
+we can pass values as an object while we call the render method.
+
+```
+// In router
+
+app.get("/", (req, res) => {
+  res.render("index", { title: "This is the home page", data: "emmanuelkiranr" });
+});
+
+// In views
+<title>{{title}}</title>
+<h1 class="text-center">{{data}}</h1>
+```
+
+Passing an array of objects
+
+```
+app.get("/", (req, res) => {
+  const blog = [
+    { name: "Blog 1", description: "lorem ipsum" },
+    { name: "Blog 2", description: "lorem ipsum" },
+    { name: "Blog 3", description: "lorem ipsum" },
+  ];
+  res.render("index", { title: "This is the home page", data: blog });
+});
+```
+
+```
+<div class="container">
+    {{#each data}}
+    <h3>{{this.name}}</h3>
+    <p>{{this.description}}</p>
+    {{/each}}
+</div>
+```

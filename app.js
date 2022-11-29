@@ -15,11 +15,20 @@ app.set("view engine", "handlebars");
 // app.set('views', path.join(__dirname, 'views'))
 
 app.get("/", (req, res) => {
-  res.render("index");
+  const blog = [
+    { name: "Blog 1", description: "lorem ipsum" },
+    { name: "Blog 2", description: "lorem ipsum" },
+    { name: "Blog 3", description: "lorem ipsum" },
+  ];
+  res.render("index", { title: "This is the home page", data: blog });
 });
 
 app.get("/about", (req, res) => {
-  res.sendFile("./views/about.html", { root: __dirname });
+  res.render("about", { title: "This is the Home Page" });
+});
+
+app.get("/blogs/create", (req, res) => {
+  res.render("create", { title: "Create a new blog" });
 });
 
 app.get("/about-us", (req, res) => {
@@ -27,7 +36,7 @@ app.get("/about-us", (req, res) => {
 });
 
 app.use((req, res) => {
-  res.status(404).sendFile("./views/404.html", { root: __dirname });
+  res.status(404).render("404", { title: "Oops page not found" });
 });
 
 app.listen(3000);
