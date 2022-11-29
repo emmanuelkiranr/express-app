@@ -9,7 +9,6 @@ import express from "express";
 const app = express();
 
 app.listen(3000);
-
 ```
 
 listen to get request use .get method. - path to listen to and a callback fn
@@ -64,3 +63,65 @@ app.use((req, res) => {
 - use method is fired even if express finds a path match or not
 - express runs through the methods from top to bottom until it finds a match,
 - if found then express doesn't carry fwd with rest of the methods even there is other match as well like the use method (since its placed at last/ also try placing it at top)
+
+## Sending dynamic html pages via view engines
+
+Instead of creating renderTemplate and registerPartial function to render dynamic html pages we configure the app to use handlebars view engine.
+
+`app.set` allows us to configure app settings - we are gonna configure the view engine setting, so the app knows which view engine to use ie handlebars.
+
+```
+app.set("view engine", "handlebars")
+```
+
+Express has a render fn that allows only execution of the libraries inside express, since handlebar is not in express we use express-handlebars. and we define the app's render engine.
+
+```
+import {engine} from "express-handlebars"
+
+app.engine("handlebars", engine());
+```
+
+NOTE: Next we need a place to create different hbs views, automatically express and handlebars will look in the `views` folder, since that is the default value of where its gonna look. So if we want to overwrite this default property
+
+```
+app.set('views', path.join(__dirname, 'views')) - default
+
+app.set("views", path.join(__dirname, "myViews)) - modified
+```
+
+Now to render an hbs file we use `res.render()`
+
+### hbs path format
+
+```
+app.get("/", (req, res) => {
+  res.render("index");
+});
+
+// path
+views > (empty) -
+Error: Failed to lookup view "index" in views directory "/Users/emmanuel/Documents/MERN/express-app/views"
+```
+
+So by default the render method looks in views directory so inside views we need to create the file to be rendered.
+
+```
+// path
+views > "index.handlebars" -
+Error: ENOENT: no such file or directory, open '/Users/emmanuel/Documents/MERN/express-app/views/layouts/main.handlebars
+```
+
+The main layout is the HTML page wrapper which can be reused for the different views of the app. {{{body}}} is used as a placeholder for where the main content should be rendered.
+
+So we create a main.handlebars file inside a new dir layouts, This is the html layout/wrapper(empty body), we pass the body of different views/pages (login page, signup page) to the main.handlebars which takes this body and renders the entire html page.
+
+Now if we res.render the index page we can see it (currently empty body).
+
+Now start adding just the body part in `index.handlebars`.
+
+So when we call the render fn on a file firstly ctrl goes to the layouts inside the views folder and takes the main.handlebars file and to it injects the body of the file which we gave to be rendered.
+
+### Bootstrap
+
+We can add the CDN links to css an js in the main.handlebars file and add the bootstrap properties to the body of different views.
