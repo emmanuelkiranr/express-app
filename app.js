@@ -14,6 +14,15 @@ app.engine("handlebars", engine());
 app.set("view engine", "handlebars");
 // app.set('views', path.join(__dirname, 'views'))
 
+// logger mw
+app.use((req, res, next) => {
+  console.log("New request made");
+  console.log(req.path);
+  console.log(req.hostname);
+  console.log(req.method);
+  next();
+});
+
 app.get("/", (req, res) => {
   const blog = [
     { name: "Blog 1", description: "lorem ipsum" },

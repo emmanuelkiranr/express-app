@@ -174,3 +174,32 @@ app.get("/", (req, res) => {
     {{/each}}
 </div>
 ```
+
+## Middleware
+
+- Code which runs on the server between getting a request and sending a response. We can have multiple middleware run on the server.
+- The .get and .post methods are also kind of middleware by definition. But the .use method fires for all kind of request no matter if it's get and post
+- The code executes top to bottom, until we exit the process or explicitely send response to the browser. So the order of middleware is important
+
+  - logger middleware to log details of every request
+  - authenticaton check mw for protected routes
+  - MW to parse json data send from post requests
+  - return 404 pages
+  - 3rd parth mw for logging, session, cookies, etc, eg `npm i morgan` -> `app.use(morgan("dev"));`
+  - some mw comes with express for serving static css files
+
+### Logger middleware
+
+```
+app.use((req, res) => {
+  console.log("New request made");
+  console.log(req.path);
+  console.log(req.hostname);
+  console.log(req.method);
+});
+```
+
+At this point the site hangs cause after executing the mx (cause we are not sending any response), express doesn't know what to do next so we use the next method.
+We get access to this fn from the mw fn parameter, we just have to invoke it.
+
+We can have multiple mw one after other, the execution will stop only if we send some response.
