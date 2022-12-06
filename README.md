@@ -25,7 +25,7 @@ Using send will automatically sets the content type based on the type of respons
 
 ```
 app.get("/about", (req, res) => {
-  res.sendFile("./views/index.js"); -
+  res.sendFile("./views_basic/index.html"); -
 });
 
 This will give us an error: TypeError: path must be absolute or specify root to res.sendFile, so we need to specify the root
@@ -35,7 +35,7 @@ This will give us an error: TypeError: path must be absolute or specify root to 
 The dir we are currently in, now the root is express-app and from their the"./views/index is the relative path
 
 app.get("/about", (req, res) => {
-  res.sendFile("./views/index.html", { root: \_\_dirname });
+  res.sendFile("./views_basic/index.html", { root: __dirname });
 });
 ```
 
@@ -55,7 +55,7 @@ use is to create and fire middleware functions in express, so this fn gets fired
 
 ```
 app.use((req, res) => {
-  res.status(404).sendFile("./views/404.html", { root: __dirname });
+  res.status(404).sendFile("./views_basic/404.html", { root: __dirname });
   // since status returns a res obj we can chain it further
 });
 ```
@@ -127,6 +127,8 @@ Also we can add components that need to be commonly rendered in all views like t
 ### Bootstrap
 
 We can add the CDN links to css an js in the main.handlebars file and add the bootstrap properties to the body of different views.
+
+Note - Below methods are achieved using middleware
 Also we can download bootstrap and add it to a file named `static`. And add the links in the `main.handlebars`
 
 ```
@@ -199,7 +201,7 @@ app.use((req, res) => {
 });
 ```
 
-At this point the site hangs cause after executing the mx (cause we are not sending any response), express doesn't know what to do next so we use the next method.
+At this point the site hangs cause after executing the mw (cause we are not sending any response), express doesn't know what to do next so we use the next method.
 We get access to this fn from the mw fn parameter, we just have to invoke it.
 
 We can have multiple mw one after other, the execution will stop only if we send some response.
@@ -216,3 +218,89 @@ in html views - href="/styles.css" - not static/styles/css
 ```
 
 So if we create a file named static, that would be accessiable by the browser try: `localhost:3000/styles.css
+
+## Requests
+
+GET, POST, DELETE, PUT
+
+We can have multiple requests to same url if the method type is different, ie get req and post req are handled differently on the server
+
+## Express router
+
+Comes with express and helps us in managing all of our routes efficently. Currently we have all our routes and it's login in one file(app.js). We use express router to split our routes into different files and manage them in small group of routes that belong together, it makes our app modular and easy to update the paths of the app later on.
+
+Say We have multiple response for the same url like for eg user, we have user/view, user/add, user/delete, user/update etc each with different methods, so we can add all these to a separate file named userRoutes inside the routes folder
+
+`userRoutes.js`
+
+```
+import express from "express"
+
+const router = express.Router(); // create a new instance of router object
+```
+
+Now move all the app.get|post routes from the app.js file to userRoutes and use router.get|post to route the page instead of app.
+Router is like a mini app, it need to be inside an app(express) to execute the routes
+
+Then import all these routers to the `app.js` - `import userRoutes from "./routes/userRoutes"`
+Then to execute this route just use the middleware ie `app.use(userRoutes)` in the app.js. We can scope this mw to use a specific path app.use("user", userRoutes) - accordingly update the userRoutes path as well
+
+In the `userRoutes.js` replace all app requests with router requests ie
+
+```
+app.get() -> router.get()
+```
+
+Then `res.render` the hbs page.
+
+eg:
+
+```
+app.js
+
+import userRoutes from "./routes/userRoutes";
+
+app.use(userRoutes); - once req comes in to the app this mw is executed and ctrl goes to userRoutes
+```
+
+userRoutes.js
+
+```
+import express from "express";
+
+const router = express.Router();
+
+router.get("/path", (res, req) => {
+  res.render("index", {data : This is data});
+})
+```
+
+## controllers
+
+Controllers - Its the link between our models and views, it uses model to get data and pass it to the view - similar to routes but more fine grained ctrl.
+
+The route file matches incoming requests and it matches those req to the correct controller fn, the controller communicates with the approproate model to get data into the view, the view then renders the data into its template and it gets send to the browser
+
+So we extract the router handler(ie router.get() etc) fns into a separate controller file, then we reference those controller fns from the router file ie `userRoutes`
+
+The app.js remains the same
+
+```
+import express from "express";
+import userController from "./controllers/userController";
+
+const router = express.Router();
+
+router.get("/path", userController.fn_name);
+```
+
+```
+userController.js
+
+const fn_name = () => {
+  res.render("index", {data : This is data});
+}
+
+export default fn_name;
+
+```
