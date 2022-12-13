@@ -234,5 +234,36 @@ learn more from [here](https://github.com/emmanuelkiranr/sequelize)
 Express router - Comes with express and helps us in managing all of our routes efficently. Currently we have all our routes and it's login in one file. We use express router to split our routes into different files and manage them in small group of routes that belong together, it makes our app modular and easy to update the paths of the app later on.
 
 Controllers - Its the link between our models and views, it uses model to get data and pass it to the view - similar to routes but more fine grained ctrl.
+In controller there should be only 4 actions - Create, Read, Update and Delete
 
 The route file matches incoming requests and it matches those req to the correct controller fn, the controller communicates with the approproate model to get data into the view, the view then renders the data into its template and it gets send to the browser
+
+## Movie MVC app
+
+<!-- Models -->
+
+step - 1: config sequelize/create an instance of sequelize in the db_handler.js. Once initialized create a new database.
+step - 2: Define the model. (In models.js file).
+step - 3: Now sync the models by exporting them to sync.js [order of sync is important].
+
+<!-- Controllers -->
+
+step - 4: Now start creating the controllers, accountController for login and register, movieController for CRUD movie.
+Each controller will have the CURD fns, where each fn rendering a view as output(res.render()).
+
+<!-- Routes -->
+
+step - 5: Create a route to access the fns in the controller using express-router. We have separate routes for each controller, accountRoutes for accountController & movieRoutes for movieController.
+
+Import the controllers to their corresponding routes and route to the fns based on the request method and path.
+For delete and update routes, we'll have the id as well in the path.n
+
+## NOTE: Create the express-route just after the fn for it is defined in the controller, then move on to create the view for that particular route. ie define a fn in the controller -> create a route for it -> create the view, then move on to create the next function -> route -> view and so on.
+
+<!-- Views -->
+
+step - 6: Create the view for the file that is to be renderd via that particular route.
+
+<!-- Create the express app -->
+
+step - 7: Finally create the express app, and import all the routes to this app. Using middleware use these routes.
