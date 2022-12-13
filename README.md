@@ -11,7 +11,7 @@ const app = express();
 app.listen(3000);
 ```
 
-listen to get request use .get method. - path to listen to and a callback fn
+listen to get request using "get" method- Takes 2 params - path to listen to and a callback fn
 
 ```
 app.get("/", (req, res) => {
@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 });
 ```
 
-Using send will automatically sets the content type based on the type of response we send, it also sets the satus code automatically
+Using "send" will automatically sets the content type based on the type of response we send, and the satus code
 
 ### Sending files
 
@@ -82,7 +82,7 @@ import {engine} from "express-handlebars"
 app.engine("handlebars", engine());
 ```
 
-NOTE: Next we need a place to create different hbs views, automatically express and handlebars will look in the `views` folder, since that is the default value of where its gonna look. So if we want to overwrite this default property
+NOTE: Next we need a place to create different hbs views, automatically express and handlebars will look in the `views` folder, since that is the default value. So if we want to overwrite this default property:
 
 ```
 app.set('views', path.join(__dirname, 'views')) - default
@@ -112,23 +112,23 @@ views > "index.handlebars" -
 Error: ENOENT: no such file or directory, open '/Users/emmanuel/Documents/MERN/express-app/views/layouts/main.handlebars
 ```
 
-The main layout is the HTML page wrapper which can be reused for the different views of the app. {{{body}}} is used as a placeholder for where the main content should be rendered.
+The main layout is a HTML page wrapper which can be reused for the different views of the app. {{{body}}} is used as a placeholder for where the content should be rendered.
 
-So we create a main.handlebars file inside a new dir layouts, This is the html layout/wrapper(empty body), we pass the body of different views/pages (login page, signup page) to the main.handlebars which takes this body and renders the entire html page.
+So we create a main.handlebars file inside a new dir layouts, This is the html layout/wrapper(empty body), we pass the content of different views/pages (login page, signup page) to the main.handlebars layout which takes this content and puts them in the {{{body}}} section and renders the entire html page.
 
 Now if we res.render the index page we can see it (currently empty body).
 
 Now start adding just the body part in `index.handlebars`.
 
-So when we call the render fn on a file firstly ctrl goes to the layouts inside the views folder and takes the main.handlebars file and to it injects the body of the file which we gave to be rendered.
+So when we call the render fn on a file firstly ctrl goes to the layouts inside the views folder and takes the main.handlebars file and to it injects the content/body of the file which we gave to be rendered.
 
-Also we can add components that need to be commonly rendered in all views like the navbar etc. inside partials
+Also we can add components that need to be commonly rendered in all views like the navbar etc. inside partials and call them in the main.handlebars using {{>navbar}}
 
 ### Bootstrap
 
 We can add the CDN links to css an js in the main.handlebars file and add the bootstrap properties to the body of different views.
 
-Note - Below methods are achieved using middleware
+Note - Below methods are achieved using middleware [check static files below]
 Also we can download bootstrap and add it to a file named `static`. And add the links in the `main.handlebars`
 
 ```
@@ -180,7 +180,7 @@ app.get("/", (req, res) => {
 ## Middleware
 
 - Code which runs on the server between getting a request and sending a response. We can have multiple middleware run on the server.
-- The .get and .post methods are also kind of middleware by definition. But the .use method fires for all kind of request no matter if it's get and post
+- The "get" and "post" methods are also kind of middleware by definition. But the "use" method fires for all kind of request no matter if it's get and post
 - The code executes top to bottom, until we exit the process or explicitely send response to the browser. So the order of middleware is important
 
   - logger middleware to log details of every request
@@ -201,7 +201,7 @@ app.use((req, res) => {
 });
 ```
 
-At this point the site hangs cause after executing the mw (cause we are not sending any response), express doesn't know what to do next so we use the next method.
+At this point the site hangs cause after executing the mw we are not sending any response, express doesn't know what to do next so we use the next method. `next()` - used to tell move on with the next mw
 We get access to this fn from the mw fn parameter, we just have to invoke it.
 
 We can have multiple mw one after other, the execution will stop only if we send some response.
@@ -219,88 +219,20 @@ in html views - href="/styles.css" - not static/styles/css
 
 So if we create a file named static, that would be accessiable by the browser try: `localhost:3000/styles.css
 
+<!-- Continue with the tutorial -->
+
 ## Requests
 
 GET, POST, DELETE, PUT
 
 We can have multiple requests to same url if the method type is different, ie get req and post req are handled differently on the server
 
-## Express router
+## Express router and controllers
 
-Comes with express and helps us in managing all of our routes efficently. Currently we have all our routes and it's login in one file(app.js). We use express router to split our routes into different files and manage them in small group of routes that belong together, it makes our app modular and easy to update the paths of the app later on.
+learn more from [here](https://github.com/emmanuelkiranr/sequelize)
 
-Say We have multiple response for the same url like for eg user, we have user/view, user/add, user/delete, user/update etc each with different methods, so we can add all these to a separate file named userRoutes inside the routes folder
-
-`userRoutes.js`
-
-```
-import express from "express"
-
-const router = express.Router(); // create a new instance of router object
-```
-
-Now move all the app.get|post routes from the app.js file to userRoutes and use router.get|post to route the page instead of app.
-Router is like a mini app, it need to be inside an app(express) to execute the routes
-
-Then import all these routers to the `app.js` - `import userRoutes from "./routes/userRoutes"`
-Then to execute this route just use the middleware ie `app.use(userRoutes)` in the app.js. We can scope this mw to use a specific path app.use("user", userRoutes) - accordingly update the userRoutes path as well
-
-In the `userRoutes.js` replace all app requests with router requests ie
-
-```
-app.get() -> router.get()
-```
-
-Then `res.render` the hbs page.
-
-eg:
-
-```
-app.js
-
-import userRoutes from "./routes/userRoutes";
-
-app.use(userRoutes); - once req comes in to the app this mw is executed and ctrl goes to userRoutes
-```
-
-userRoutes.js
-
-```
-import express from "express";
-
-const router = express.Router();
-
-router.get("/path", (res, req) => {
-  res.render("index", {data : This is data});
-})
-```
-
-## controllers
+Express router - Comes with express and helps us in managing all of our routes efficently. Currently we have all our routes and it's login in one file. We use express router to split our routes into different files and manage them in small group of routes that belong together, it makes our app modular and easy to update the paths of the app later on.
 
 Controllers - Its the link between our models and views, it uses model to get data and pass it to the view - similar to routes but more fine grained ctrl.
 
 The route file matches incoming requests and it matches those req to the correct controller fn, the controller communicates with the approproate model to get data into the view, the view then renders the data into its template and it gets send to the browser
-
-So we extract the router handler(ie router.get() etc) fns into a separate controller file, then we reference those controller fns from the router file ie `userRoutes`
-
-The app.js remains the same
-
-```
-import express from "express";
-import userController from "./controllers/userController";
-
-const router = express.Router();
-
-router.get("/path", userController.fn_name);
-```
-
-```
-userController.js
-
-const fn_name = () => {
-  res.render("index", {data : This is data});
-}
-
-export default fn_name;
-
-```
