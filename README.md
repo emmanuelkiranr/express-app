@@ -338,4 +338,49 @@ req.identity = {
 }
 ```
 
+- The user is required to login - logged in users will have userId
+
+```
+if (req.url == "/login" || req.url == "/register") {
+  return next(); // redirect to the next middleware ie accountsRoutes - so the user will login and then we'll set the session id
+}
+```
+
+- If we try to access intermediat url without logging in, we'll be redirected to the login page since to access that url we need the userId in the session object & we get the userId only if we login.
+
+```
+let userId = req.session.userId;
+  if (!userId || userId == null) {
+    return res.redirect("/login");
+  }
+```
+
+- we check if a user exist for that id, so that we can store the user details in `req.identity`
+
+```
+ let userFromDb = await Users.findByPk(userId);
+  // if user doesn't ask to login
+  if (userFromDb == null) {
+    return res.redirect("/login");
+  }
+  // store details
+  req.identity.isAuthenticated = true;
+  req.identity.user = {
+    id: userFromDb.dataValues.id,
+    fullname: userFromDb.dataValues.fullname,
+    email: userFromDb.dataValues.email,
+    role: "user",
+  };
+  next(); // move to the next middleware ie movieRoutes
+};
+```
+
+```
+const index = (req, res) => {
+  Movie.findAll().then((data) => {
+    res.render("index", { data, identity: req.identity.user }); // since in the req.identity we have the user details (which we put while the user logged in) we can pass it to the view
+  });
+};
+```
+
 check [code](https://github.com/emmanuelkiranr/express-app/blob/main/middlewares/authMiddleware.js)

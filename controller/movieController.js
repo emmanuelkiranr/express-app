@@ -2,7 +2,7 @@ import { Movie } from "../models/models.js";
 
 const index = (req, res) => {
   Movie.findAll().then((data) => {
-    res.render("index", { data, identity: req.identity.user });
+    res.render("index", { data, identity: req.identity.user }); // since in the req.identity we have the user details (which we put while the user logged in) we can pass it to the view
   });
 };
 
