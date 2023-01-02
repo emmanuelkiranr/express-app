@@ -1,8 +1,11 @@
-import Movie from "../models/models.js";
+import { Movie } from "../models/models.js";
 
 const index = (req, res) => {
-  res.render("index");
+  Movie.findAll().then((data) => {
+    res.render("index", { data });
+  });
 };
+
 const create = (req, res) => {
   res.render("movie-form");
 };

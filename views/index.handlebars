@@ -1,1 +1,18 @@
-Home Page
+<table>
+    <tr>
+        <td>id</td>
+        <td>Name</td>
+        <td>Date</td>
+        <td>Summary</td>
+        <td>Director</td>
+    </tr>
+    {{#each data}}
+    <tr>
+        <td>{{this.dataValues.id}}</td>
+        <td>{{this.dataValues.name}}</td>
+        <td>{{this.dataValues.releaseDate}}</td>
+        <td>{{this.dataValues.summary}}</td>
+        <td>{{this.dataValues.director}}</td>
+    </tr>
+    {{/each}}
+</table>
