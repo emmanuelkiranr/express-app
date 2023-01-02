@@ -233,7 +233,7 @@ learn more from [here](https://github.com/emmanuelkiranr/sequelize)
 
 Express router - Comes with express and helps us in managing all of our routes efficently. Currently we have all our routes and it's login in one file. We use express router to split our routes into different files and manage them in small group of routes that belong together, it makes our app modular and easy to update the paths of the app later on.
 
-Controllers - Its the link between our models and views, it uses model to get data and pass it to the view - similar to routes but more fine grained ctrl.
+Controllers - Its the link between our models and views, it uses model to get data and pass it to the view (controller gets data from models.js and renders the view using res.render) - similar to routes but more fine grained ctrl.
 In controller there should be only 4 actions - Create, Read, Update and Delete
 
 The route file matches incoming requests and it matches those req to the correct controller fn, the controller communicates with the approproate model to get data into the view, the view then renders the data into its template and it gets send to the browser
@@ -256,7 +256,7 @@ Each controller will have the CURD fns, where each fn rendering a view as output
 step - 5: Create a route to access the fns in the controller using express-router. We have separate routes for each controller, accountRoutes for accountController & movieRoutes for movieController.
 
 Import the controllers to their corresponding routes and route to the fns based on the request method and path.
-For delete and update routes, we'll have the id as well in the path.n
+For delete and update routes, we'll have the id as well in the path.
 
 ## NOTE: Create the express-route just after the fn for it is defined in the controller, then move on to create the view for that particular route. ie define a fn in the controller -> create a route for it -> create the view, then move on to create the next function -> route -> view and so on.
 
@@ -266,4 +266,43 @@ step - 6: Create the view for the file that is to be renderd via that particular
 
 <!-- Create the express app -->
 
-step - 7: Finally create the express app, and import all the routes to this app. Using middleware use these routes.
+step - 7: Finally create the express app, and import all the routes to this app. Using middleware access these routes.
+
+NOTE:
+
+When using `res.redirect("/")` - the browser sends a new request to the server - so we need to create a route to handle this new request as well(if redirecting to a new page) - `router.get("/", movieController.index);`
+
+For update we use the url `/update/:id` - here the :id refers to the id we pass via the url - this id is not passed as an object format but just the value itself so to get this value in object format we use the `req.params` - `req.params.id`
+
+To get the current details (before updating) inside a form format for better viewability. Render the current format in a form and display each values in the appropriate tags by passing to it an data object, and accessing it via the dataValues prop inside the value attribute.
+
+```
+<div>
+  <label for="releasedate">Release Date</label>
+  <input type="date" name="releasedate id="releasedate" class="form-control" value="{{data.dataValues.releaseDate}}">
+</div>
+```
+
+This allows us to directly update the required data from inside the form itself and save to the db via the updatePost request.
+The form contains the id (`req.params`), and the new values are taken from the `req.body` once we start updating and submit the form (post method)
+
+Delete - before deleting we need to check whether that entry exists in the db
+
+```
+const _delete = async (req, res) => {
+  let id = req.params.id;
+  let exists = await Movie.findByPk(id);
+  // Since this returns a promise, this is an async function,
+  // so we have to finish executing this first inorder to delete the data only after verifying. Or else the deletion takes place before this check
+  if (exists != null) {
+    Movie.destroy({
+      where: {
+        id,
+      },
+    });
+    res.json({ data: "Successfully deleted" });
+  } else {
+    res.json({ data: "Data doesn't exist" });
+  }
+};
+```

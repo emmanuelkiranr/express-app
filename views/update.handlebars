@@ -1,0 +1,31 @@
+<div class="container">
+    <h1 class="text-center">Update Movie</h1>
+    <div class="row">
+        <div class="col-sm-6 offset-sm-3">
+            <form method="post">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" name="name" id="name" class="form-control" value="{{data.dataValues.name}}">
+                </div>
+                <div>
+                    <label for="director">Directed By</label>
+                    <input type="text" name="director" id="director" class="form-control"
+                        value="{{data.dataValues.director}}">
+                </div>
+                <div>
+                    <label for="releasedate">Release Date</label>
+                    <input type="date" name="releasedate" id="releasedate" class="form-control"
+                        value="{{data.dataValues.releaseDate}}">
+                </div>
+                <div>
+                    <label for="summary">Summary</label>
+                    <textarea name="summary" id="summary" class="form-control">{{data.dataValues.summary}}
+                    </textarea>
+                </div>
+                <div class="d-grid mt-4">
+                    <button class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
