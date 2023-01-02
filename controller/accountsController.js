@@ -1,7 +1,6 @@
 import { Users } from "../models/models.js";
 
 const login = (req, res) => {
-  console.log(req);
   res.render("login");
 };
 
@@ -15,6 +14,7 @@ const loginPost = async (req, res) => {
   if (login == null) {
     return res.render("login", { data: "User doesn't exist" });
   }
+  req.session.userId = login.id; // set the userId to the id from db
   res.redirect("/");
 };
 

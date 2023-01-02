@@ -2,7 +2,7 @@ import { Movie } from "../models/models.js";
 
 const index = (req, res) => {
   Movie.findAll().then((data) => {
-    res.render("index", { data });
+    res.render("index", { data, identity: req.identity.user });
   });
 };
 

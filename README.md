@@ -308,3 +308,34 @@ const _delete = async (req, res) => {
 ```
 
 Added option to add, edit, delete each entry directly from the index page for easier navigation [code](https://github.com/emmanuelkiranr/express-app/blob/main/views/index.handlebars)
+
+## Middleware
+
+cookie-session -
+
+```
+
+import cookieSession from "cookie-session";
+
+app.use(
+  cookieSession({
+    name: "session",
+    httpOnly: true,
+    keys: ["asdghjhgsdahjsgdhjasd"],
+    maxAge: 24 * 60 * 60 * 1000,
+  })
+);
+```
+
+Create a new cookie session middleware with the provided options. This middleware will attach the property session to req, which provides an object representing the loaded session. This session is either a new session if no valid session was provided in the request, or a loaded session from the request.
+
+Only if a user is logged in, they can make changes to the db, so logged in users will have a `session` id. To store the identity of the logged in user we use `req.identity` -
+
+```
+req.identity = {
+  isAuthenticated: false,
+  user: null
+}
+```
+
+check [code](https://github.com/emmanuelkiranr/express-app/blob/main/middlewares/authMiddleware.js)
