@@ -25,4 +25,27 @@ const Movie = sequelize.define("Movie", {
   },
 });
 
-export default Movie;
+const Users = sequelize.define("Users", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+
+  fullname: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+
+  email: {
+    type: DataTypes.STRING(30),
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+});
+
+export { Movie, Users };

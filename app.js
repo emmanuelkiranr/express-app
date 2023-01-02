@@ -1,5 +1,6 @@
 import express from "express";
 import movieRoutes from "./routes/movieRoutes.js";
+import accountRoutes from "./routes/accountRoutes.js";
 import { engine } from "express-handlebars";
 import parser from "body-parser";
 
@@ -11,3 +12,4 @@ app.listen(80);
 
 app.use("/", parser.urlencoded({ extended: true }));
 app.use(movieRoutes);
+app.use(accountRoutes);
