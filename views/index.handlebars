@@ -1,18 +1,28 @@
-<table>
-    <tr>
-        <td>id</td>
-        <td>Name</td>
-        <td>Date</td>
-        <td>Summary</td>
-        <td>Director</td>
-    </tr>
-    {{#each data}}
-    <tr>
-        <td>{{this.dataValues.id}}</td>
-        <td>{{this.dataValues.name}}</td>
-        <td>{{this.dataValues.releaseDate}}</td>
-        <td>{{this.dataValues.summary}}</td>
-        <td>{{this.dataValues.director}}</td>
-    </tr>
-    {{/each}}
-</table>
+<h1 class="text-center">Movies</h1>
+<div class="container">
+    <a href="/create" class="btn btn-primary">+ Add movie</a>
+    <table class="table table-striped mt-4">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Release Date</th>
+            <th>Director</th>
+            <th>Summary</th>
+            <th>Action</th>
+        </tr>
+        {{#each data}}
+        <tr>
+            <td>{{this.dataValues.id}}</td>
+            <td>{{this.dataValues.name}}</td>
+            <td>{{this.dataValues.releaseDate}}</td>
+            <td>{{this.dataValues.director}}</td>
+            <td>{{this.dataValues.summary}}</td>
+            <td>
+                <a href="/update/{{this.dataValues.id}}">Edit</a> |
+                <a href="/delete/{{this.dataValues.id}}" class="text-danger"
+                    onclick="return confirm('Are you sure you want to delete this')">Delete</a>
+            </td>
+        </tr>
+        {{/each}}
+    </table>
+</div>

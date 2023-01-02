@@ -306,3 +306,5 @@ const _delete = async (req, res) => {
   }
 };
 ```
+
+Added option to add, edit, delete each entry directly from the index page for easier navigation [code](https://github.com/emmanuelkiranr/express-app/blob/main/views/index.handlebars)

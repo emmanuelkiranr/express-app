@@ -8,6 +8,6 @@ router.get("/create", movieController.create);
 router.post("/create", movieController.createPost);
 router.get("/update/:id", movieController.update);
 router.post("/update/:id", movieController.updatePost);
-router.delete("/delete/:id", movieController._delete);
+router.get("/delete/:id", movieController._delete);
 
 export default router;

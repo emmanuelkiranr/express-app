@@ -57,11 +57,11 @@ const _delete = async (req, res) => {
         id,
       },
     });
-    res.json({ data: "Successfully deleted" });
+    // res.json({ data: "Successfully deleted" });
   } else {
-    res.json({ data: "Data doesn't exist" });
+    // res.json({ data: "Data doesn't exist" });
   }
-  // res.redirect("/");
+  res.redirect("/");
 };
 
 export default { index, create, createPost, update, updatePost, _delete };
