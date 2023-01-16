@@ -64,6 +64,18 @@ app.use((req, res) => {
 - express runs through the methods from top to bottom until it finds a match,
 - if found then express doesn't carry fwd with rest of the methods even there is other match as well like the use method (since its placed at last/ also try placing it at top)
 
+## response methods
+
+```
+res.json()
+
+res.send() - strings
+
+res.download() - Transfers/downloads the file as an attachment
+
+res.redirect() - Redirects the user to the specified route by forcing another request to an extrernal site or within the app
+```
+
 ## Sending dynamic html pages via view engines
 
 Instead of creating renderTemplate and registerPartial function to render dynamic html pages we configure the app to use handlebars view engine.
@@ -179,16 +191,50 @@ app.get("/", (req, res) => {
 
 ## Middleware
 
+Functions that have access to the request object, the response object, and the next function in the application’s request-response cycle.
+
 - Code which runs on the server between getting a request and sending a response. We can have multiple middleware run on the server.
 - The "get" and "post" methods are also kind of middleware by definition. But the "use" method fires for all kind of request no matter if it's get and post
 - The code executes top to bottom, until we exit the process or explicitely send response to the browser. So the order of middleware is important
 
-  - logger middleware to log details of every request
-  - authenticaton check mw for protected routes
-  - MW to parse json data send from post requests
-  - return 404 pages
-  - 3rd parth mw for logging, session, cookies, etc, eg `npm i morgan` -> `app.use(morgan("dev"));`
-  - some mw comes with express for serving static css files
+In-built middleware
+
+```
+express.static(); - serve static files
+express.json(); - parse incoming req with json payloads
+express.urlencoded(); - parse incoming req with URL encoded payloads
+```
+
+- logger middleware to log details of every request
+- authenticaton check mw for protected routes
+- MW to parse json data send from post requests
+- return 404 pages
+- 3rd parth mw for logging, session, cookies, etc, eg `npm i morgan` -> `app.use(morgan("dev"));`
+- some mw comes with express for serving static css files
+
+```
+app.use("/", (req, res, next) => {
+
+  next(); - To invoke the next middleware fn in the app
+})
+```
+
+Multiple callbacks
+
+```
+app.get("/next" , (req, res, next) => {}, (req, res) => {})
+
+app.get(
+  "/next",
+  (req, res, next) => {
+    console.log("The next middleware will send the response");
+    next();
+  },
+  (req, res) => {
+    res.send("Just set up a route with second callback");
+  }
+);
+```
 
 ### Logger middleware
 
@@ -206,18 +252,31 @@ We get access to this fn from the mw fn parameter, we just have to invoke it.
 
 We can have multiple mw one after other, the execution will stop only if we send some response.
 
+## Utilizing middlewares for errors
+
+Manually throw an error from our app - `throw new Error();` - This will display the stack trace error in the browser which is not right cause the client doesn't need to see it. So use an additional parameter in the middleware called `err` to handle this:
+
+```
+app.use((err, req, res, next) => {
+  console.error(err.stack); - displays the err stack only for the dev
+  res.status(500).send("Internal server Error");
+});
+```
+
 ## static file
 
 If we have static files like styles, img etc, we won't be able to access them automatically. Cause the server protects all of our files from users in the browser so they cant access any of our files.
-So we have to specify what files should be accessed ie public, to achieve this we use the `static` middleware that comes with express
+So we have to specify what files should be accessed ie public, to achieve this we use the `static` middleware that comes with express. This allows us to access those files at root level
 
 ```
 app.use(express.static("static"));
 
-in html views - href="/styles.css" - not static/styles/css
+in html views - href="/styles.css" - not static/styles/css - since we now have access to static at root level
 ```
 
-So if we create a file named static, that would be accessiable by the browser try: `localhost:3000/styles.css
+So if we create a file named static, that would be accessiable by the browser try: `localhost:3000/styles.css.
+
+To create a specific route for the static files `app.use("/images", express.static("images"));`
 
 <!-- Continue with the tutorial -->
 
@@ -227,9 +286,27 @@ GET, POST, DELETE, PUT
 
 We can have multiple requests to same url if the method type is different, ie get req and post req are handled differently on the server
 
+### Route Chaining to handle requests to same url
+
+```
+app.route("/path").get((req, res) => {
+  res.send("Read class info");
+}).post((req, res) => {
+  res.send("Create class info");
+}).put((req, res) => {
+  res.send("Update class info");
+}).delete((req, res) => {
+  res.send("Delete class info");
+});
+```
+
 ## Express router and controllers
 
 learn more from [here](https://github.com/emmanuelkiranr/sequelize)
+
+ROUTES: To determine how an application responds to a client request to a particular endpoint, which is a path and an request method [HTTP method - actions taken on a specific resource often CRUD].
+
+Route handler - Blocks of code that handle the logic for the routes, in the form of functions.
 
 Express router - Comes with express and helps us in managing all of our routes efficently. Currently we have all our routes and it's login in one file. We use express router to split our routes into different files and manage them in small group of routes that belong together, it makes our app modular and easy to update the paths of the app later on.
 
@@ -273,6 +350,11 @@ NOTE:
 When using `res.redirect("/")` - the browser sends a new request to the server - so we need to create a route to handle this new request as well(if redirecting to a new page) - `router.get("/", movieController.index);`
 
 For update we use the url `/update/:id` - here the :id refers to the id we pass via the url - this id is not passed as an object format but just the value itself so to get this value in object format we use the `req.params` - `req.params.id`
+
+Route parameters (params - req.params): Segments of an URL that are used to capture values specified at positions within the URL.
+eg `app.get("/users/:userId/books/:bookId, () => {})`
+`req.params` returns an object with key: value pair corresponding to the route parameters and their values.
+NOTE: The value is always returned as strings
 
 To get the current details (before updating) inside a form format for better viewability. Render the current format in a form and display each values in the appropriate tags by passing to it an data object, and accessing it via the dataValues prop inside the value attribute.
 
