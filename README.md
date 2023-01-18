@@ -254,7 +254,84 @@ We can have multiple mw one after other, the execution will stop only if we send
 
 ## Utilizing middlewares for errors
 
-Manually throw an error from our app - `throw new Error();` - This will display the stack trace error in the browser which is not right cause the client doesn't need to see it. So use an additional parameter in the middleware called `err` to handle this:
+We can end an request cycle by sending a response or call the next middleware in the chain using next(), but if any error occurs inside the middleware or route, it might crash our application
+
+To simulate this create a route or middleware and manually throw an error from our app - `throw new Error();`
+
+```
+// In  movieRoutes.js
+
+router.get("/throw", (req, res) => {
+  throw new Error(); // stack trace in browser
+});
+```
+
+This won't crash the app, but if most times we are using async fns, so if we throw an error inside an async invocation it would crash our app,
+To simulate this use setTimeout;
+
+```
+router.get("/throw", (req, res) => {
+  setTimeout(() => {
+    throw new Error();
+  }, 2000);
+});
+```
+
+This will crash the app after 2 seconds without any error to the client and give the default error message to the client. Since most of the controllers are written in a async function it is important to handle these errors properly to avoid the app from crashing.
+
+To handle these errors from async fns: use next(); to directly return the err object instead of throw
+
+```
+router.get("/throw", (req, res, next) => {
+  setTimeout(() => {
+    // *note
+    return next(new Error()); // short stack trace msg in browser cause in async nodejs doesn't see much of what happend before
+  }, 2000);
+});
+
+```
+
+This won't crash the app, but since we mostly use async await to write fns if we throw errors there:
+
+```
+const getName = async () => {
+  throw new Error();
+  return "Emmanuel";
+};
+router.get("/throw", async (req, res, next) => {
+  let data = await getName();
+  return data;
+});
+```
+
+This would completely crash the app [unhandled promise rejection warning].
+
+To handle this and the async invocation properly use the `try catch block`. So if any error occurs in the try block it is caught and handled in the catch block.
+
+```
+const getName = async () => {
+  throw new Error();
+  return "Emmanuel";
+};
+router.get("/throw", async (req, res, next) => {
+  try {
+    let data = await getName();
+    return data;
+  } catch (err) {
+    // *note
+    return next(err); // stack trace error in the browser
+  }
+});
+```
+
+This won't crash our application.
+
+Now we need to remove the stack trace error from the browser since the client doesn't want to see it an it might contain any sensitive info.
+
+create an error template to display when the app throws an error,
+[NOTE: We need to handle errors thrown by the routes/controllers and also for 404, for 404 create an additional middleware at the end (since they are executed in order)]
+
+### Error handling middleware
 
 ```
 app.use((err, req, res, next) => {
@@ -262,6 +339,55 @@ app.use((err, req, res, next) => {
   res.status(500).send("Internal server Error");
 });
 ```
+
+Error handling middleware with error template
+
+NOTE \* - Remove the return once we have the error handling middleware, since we need to call next() on the err, only then the error will be passed to the error handler middleware.
+
+```
+app.use((err, req, res, next) => {
+  res.locals.message = err.message;
+  console.error(err);
+  let status = err.status || 500;
+  res.locals.status = status;
+  res.status(status);
+  res.render("error");
+});
+```
+
+This will handle all errors that is being formed from any routes/controller.
+
+locals is an object which is a property of the req object, this is used to store values to variables scoped to that particular request in which it is used, because of this, it is only availabel to the view(s) rendered during that request/response cycle.
+
+eg:
+
+```
+const getName = async () => {
+  return "Emmanuel";
+};
+router.get("/throw", async (req, res, next) => {
+  try {
+    throw new Error("Internal server errror"); // we get an error from a route inside the try block
+    let data = await getName();
+    return data;
+  } catch (err) {
+    next(err); // catches the error and passes it to the error handling middleware since it has the err parameter
+  }
+});
+
+The middleware handles the error and renders the error page
+```
+
+Now to handle 404 File not found errors create another middlewares
+
+```
+app.use((req, res, next) => {
+  return next(createHttpError(404, "File not found")); // return not necessary
+});
+```
+
+Since we need to send the error to error handling middleware as next(err); format, to make the 404 error into similar format we use the `http-errors` pkg. and `import createHttpError from "http-errors"`;
+Now we can pass to it the status and error message
 
 ## static file
 
@@ -277,8 +403,6 @@ in html views - href="/styles.css" - not static/styles/css - since we now have a
 So if we create a file named static, that would be accessiable by the browser try: `localhost:3000/styles.css.
 
 To create a specific route for the static files `app.use("/images", express.static("images"));`
-
-<!-- Continue with the tutorial -->
 
 ## Requests
 
