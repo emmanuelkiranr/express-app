@@ -5,24 +5,22 @@ const authMiddleware = async (req, res, next) => {
     user: null,
   };
 
-  // only logged in users have session id so make sure the user is logged in
   if (req.url == "/login" || req.url == "/register") {
-    return next(); // redirect to the next middleware ie accountsRoutes - so the user will login and then we'll set the session id
+    return next(); //  accountsRoutes
   }
 
-  // if logged in the we'll set the userId to the id from the user table and adding it to the session object we created using cookie-session
-  let userId = req.session.userId; // take the userId from session object and store in a variable
+  let userId = req.session.userId; // userId taken from req.session object
   if (!userId || userId == null) {
     return res.redirect("/login");
   } // if there is no userId, it means user haven't logged in
 
   // else store the details of logged in user to req.identity
   let userFromDb = await Users.findByPk(userId);
-  // if user doesn't ask to login
+
   if (userFromDb == null) {
     return res.redirect("/login");
   }
-  // store details
+
   req.identity.isAuthenticated = true;
   req.identity.user = {
     id: userFromDb.dataValues.id,
@@ -30,7 +28,7 @@ const authMiddleware = async (req, res, next) => {
     email: userFromDb.dataValues.email,
     role: "user",
   };
-  next(); // move to the next middleware ie movieRoutes
+  next(); // movieRoutes
 };
 
 export default authMiddleware;

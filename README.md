@@ -391,13 +391,17 @@ const _delete = async (req, res) => {
 
 Added option to add, edit, delete each entry directly from the index page for easier navigation [code](https://github.com/emmanuelkiranr/express-app/blob/main/views/index.handlebars)
 
-## Middleware
+## cookie-session
 
-cookie-session -
+Since http is stateless ie it does not recognize user/data between requests. So to persist data b/w request we need sessions.
+With the help of sessions we can store data in the request header that will be send to the server everytime the client sends a new request. This way data persists b/w requests.
+
+This is useful when we want to authenticate users, once the user login we'll store their info in the session object and then sent the response to the client, this response will contain those info writing to the request header.
+
+To store info in the request header, we need to create another object in req called session. Then we just need to add the details that need to persist into this.
 
 ```
-
-import cookieSession from "cookie-session";
+Once req passes throuth this middleware, it will contain another property named session
 
 app.use(
   cookieSession({
@@ -409,26 +413,66 @@ app.use(
 );
 ```
 
-Create a new cookie session middleware with the provided options. This middleware will attach the property session to req, which provides an object representing the loaded session. This session is either a new session if no valid session was provided in the request, or a loaded session from the request.
+[req is an object with many properties to it we are adding session as well, this session is an object by itself with properties like userId for auth, viewCount for no. of visits etc.]
 
-Only if a user is logged in, they can make changes to the db, so logged in users will have a `session` id. To store the identity of the logged in user we use `req.identity` -
+This will create a new cookie session middleware with the provided options. This middleware will attach the property session to req, which provides an object representing the loaded session. This session is either a new session if no valid session was provided in the request, or a loaded session from the request.
+
+## storing userId to the session object
+
+Once we authenticate a user through login, we need to make sure that we recognise them later(when they send req to another page), ie if the next request is send by the authenticated user or not, or else we have to reauthenticate them again for each requests.
+
+so we create a middleware for this, when the user first login we retreve their userId from the database and store it to the session object[created above] and then set it to the req header when we send response.
+
+`cookie-session` will create the sesssion object in req header
+
+Once we authenticate the users after verifying their records from the database, we take their userId and store it to session by `req.session.userId = login.id`
 
 ```
-req.identity = {
-  isAuthenticated: false,
-  user: null
-}
+const loginPost = async (req, res) => {
+  let login = await Users.findOne({
+    where: {
+      email: req.body.email,
+      password: req.body.password,
+    },
+  });
+  if (login == null) {
+    return res.render("login", { data: "User doesn't exist" });
+  }
+  req.session.userId = login.id; <----
+  res.redirect("/");
+};
 ```
 
-- The user is required to login - logged in users will have userId
+From now on the request send by the client will contain the session object with the userId property;
+
+## authMiddleware
+
+Now when the client makes a new request to any pages, we need intercept it to check whether this is the authenticated user making that request to prevent unauthorised access.
+
+So we use the authMiddleware.
+
+step 1: Firstly for any new user we set their identity to null, [not necessary, only if we need additional info other that userId, which we store in session]
+
+```
+const authMiddleware = async (req, res, next) => {
+  req.identity = {
+    isAuthenticated: false,
+    user: null,
+  };
+};
+```
+
+`req.identity` will add another property named identity to the request object, the identity itself is an object which stores the user details and whether authenticated or not.
+
+step 2: Check to which route is the incoming request [since we cannot set userId for user's NOT logged in/registered]
 
 ```
 if (req.url == "/login" || req.url == "/register") {
-  return next(); // redirect to the next middleware ie accountsRoutes - so the user will login and then we'll set the session id
-}
+    return next(); - redirect accountsRoutes - so the user will login and then we'll set the session id
+  }
 ```
 
-- If we try to access intermediat url without logging in, we'll be redirected to the login page since to access that url we need the userId in the session object & we get the userId only if we login.
+step 3: Logged in users will have their userId in session, take it and store it to userId.
 
 ```
 let userId = req.session.userId;
@@ -437,32 +481,33 @@ let userId = req.session.userId;
   }
 ```
 
-- we check if a user exist for that id, so that we can store the user details in `req.identity`
+step 4: Double checking that particular user still exists in our id;
 
 ```
- let userFromDb = await Users.findByPk(userId);
-  // if user doesn't ask to login
+let userFromDb = await Users.findByPk(userId);
   if (userFromDb == null) {
     return res.redirect("/login");
   }
-  // store details
-  req.identity.isAuthenticated = true;
+```
+
+step 5: Take those user Details and store it to the identity object we created and set isAuthenticated to true
+
+```
+req.identity.isAuthenticated = true;
   req.identity.user = {
     id: userFromDb.dataValues.id,
     fullname: userFromDb.dataValues.fullname,
     email: userFromDb.dataValues.email,
     role: "user",
   };
-  next(); // move to the next middleware ie movieRoutes
-};
 ```
 
-```
-const index = (req, res) => {
-  Movie.findAll().then((data) => {
-    res.render("index", { data, identity: req.identity.user }); // since in the req.identity we have the user details (which we put while the user logged in) we can pass it to the view
-  });
-};
-```
+step 6: use `next()` to direct users to the next middleware ie they can access other pages.
+
+From now on for authenticated client the req they sent contain the userId in session and user info in identity, so when they sent a new request to a different page, this authMiddleware intercepts it and checks if authenticated or not.
+
+If authenticated, the req already contains the identity object, so it skips step 1, [they shouldn't be allowed to visit the url's in step 2, will fix it later], then in step 3, their userId is taken from the req.session and verified. Since authenticated step 4 is satisfied and step 5 will already exist so it's skiped and goes to step 6 which will send the client to the requested page.
+
+In this requested page controller log req.session and req.identity to see the userId and userDetails stored in the req header.
 
 check [code](https://github.com/emmanuelkiranr/express-app/blob/main/middlewares/authMiddleware.js)
