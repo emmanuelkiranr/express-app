@@ -417,6 +417,9 @@ app.use(
 
 This will create a new cookie session middleware with the provided options. This middleware will attach the property session to req, which provides an object representing the loaded session. This session is either a new session if no valid session was provided in the request, or a loaded session from the request.
 
+If we don't set the maxAge the cookie will be deleted when we close the browser;
+secure - cookie will only be sent over secure connection means SSL
+
 ## storing userId to the session object
 
 Once we authenticate a user through login, we need to make sure that we recognise them later(when they send req to another page), ie if the next request is send by the authenticated user or not, or else we have to reauthenticate them again for each requests.
@@ -425,7 +428,7 @@ so we create a middleware for this, when the user first login we retreve their u
 
 `cookie-session` will create the sesssion object in req header
 
-Once we authenticate the users after verifying their records from the database, we take their userId and store it to session by `req.session.userId = login.id`
+Once we authenticate the users after verifying their records from the database, we take their userId and store it to session by `req.session.userId = login.id`. The data stored in session is encrypted for the client. [eventhough encrypted it can be found by decrypting it so use some kind of random hash that cannot be easily brute forced]. Also storing the entire User details in the session would mean if we delete that user from the db, it's data is still available in the session. So just userId is enough as it allows us to access that user from db.
 
 ```
 const loginPost = async (req, res) => {
@@ -511,3 +514,76 @@ If authenticated, the req already contains the identity object, so it skips step
 In this requested page controller log req.session and req.identity to see the userId and userDetails stored in the req header.
 
 check [code](https://github.com/emmanuelkiranr/express-app/blob/main/middlewares/authMiddleware.js)
+
+[Instead of writing the authMiddleware we can use a package called passport]
+
+## Authentication vs Authorization
+
+Why users should login?
+
+- authentication - to know who is the user
+
+What the user is allowed to do?
+
+- authorization - restrict or grant access to info depending on privileges a user has
+
+To make sure pages that require previlege can only be accessed by loggedin user, ie "/create", "/update", "/delete" and all should be accessable only to logged in user, for other users they should be taken/redirected to the login/register page.
+
+This is implemented in the authMiddleware, where we redirect users without userId to the login page.
+
+Another method is to directly implement it in the routes by adding another middleware.
+
+```
+router.get("/", (req, res, next) => {
+  if(req.session.userId) {
+    next();
+  } else {
+    return res.status(401).end();
+  }
+}, (req, res) => {
+  Movie.findAll().then((data) => {
+    res.render("index", { data, identity: req.identity.user });
+  });
+};);
+```
+
+This way of chaining middleware to enforce rules that need to apply before we call the next middleware.
+
+Also we need to deny logged in users from trying to access the "/login" and "/register" page and redirect them to their home/dashboard
+
+So we create a function
+
+```
+const redirectIfLoggedIn = (req, res, next) => {
+  if(req.session.userId) {
+    return res.redirect("/")
+  } else {
+    return next();
+  }
+}
+```
+
+Then add this function to the login and register routes
+
+```
+router.get("/login", redirectIfLoggedIn, (req, res) => {
+  res.render("login");
+});
+```
+
+Only if user not logged in he's taken to the login page using next(); else he's redirected to home page "/".
+
+Or we can directly implement this in the `authMiddleware`
+
+```
+let userId = req.session.userId;
+  if (!userId || userId == null) {
+    return res.redirect("/login");
+  }
+
+  if (req.url == "/login" || req.url == "/register") {
+    return res.redirect("/");
+  }
+```
+
+since for every req we check userId from session, when logged in user try to access login page they are redirected to home page.
