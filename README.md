@@ -219,7 +219,9 @@ app.use("/", (req, res, next) => {
 })
 ```
 
-Multiple callbacks
+Middleware using multiple callbacks
+
+Here the first callback is the middleware and is executed before the response is send by the second callback
 
 ```
 app.get("/next" , (req, res, next) => {}, (req, res) => {})
@@ -700,13 +702,13 @@ Only if user not logged in he's taken to the login page using next(); else he's 
 Or we can directly implement this in the `authMiddleware`
 
 ```
-let userId = req.session.userId;
-  if (!userId || userId == null) {
-    return res.redirect("/login");
-  }
+let userId = req.session.userId; // userId taken from req.session object
 
   if (req.url == "/login" || req.url == "/register") {
-    return res.redirect("/");
+    if (userId) {
+      return res.redirect("/"); // logged in user don't need to access login or register page again
+    }
+    return next();
   }
 ```
 

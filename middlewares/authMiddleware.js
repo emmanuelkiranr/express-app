@@ -6,13 +6,17 @@ const authMiddleware = async (req, res, next) => {
   };
 
   let userId = req.session.userId; // userId taken from req.session object
+
+  if (req.url == "/login" || req.url == "/register") {
+    if (userId) {
+      return res.redirect("/"); // logged in user don't need to access login or register page again
+    }
+    return next();
+  }
+
   if (!userId || userId == null) {
     return res.redirect("/login");
   } // if there is no userId, it means user haven't logged in
-
-  if (req.url == "/login" || req.url == "/register") {
-    return res.redirect("/"); // logged in user don't need to access login or register page again
-  }
 
   // else store the details of logged in user to req.identity
   let userFromDb = await Users.findByPk(userId);
